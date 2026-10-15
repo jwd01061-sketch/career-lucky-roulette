@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>취업동아리 럭키 룰렛</title>
+<style>
+:root{--navy:#17324d;--blue:#2463eb;--bg:#f5f7fb;--text:#1f2937}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#edf4ff,#f8fafc 55%);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif;color:var(--text)}
+main{max-width:760px;margin:0 auto;padding:24px 16px 40px}.hero{text-align:center;padding:18px 8px 8px}.eyebrow{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.08em}.hero h1{font-size:clamp(27px,6vw,40px);line-height:1.2;margin:10px 0}.hero p{margin:8px 0;color:#536174;line-height:1.6}.panel{background:white;border:1px solid #e3eaf4;border-radius:24px;padding:20px;box-shadow:0 12px 32px #1c355411;margin-top:18px}.wheel-wrap{position:relative;width:min(82vw,460px);margin:0 auto}.pointer{position:absolute;z-index:2;left:50%;top:-5px;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:35px solid #ef4444;filter:drop-shadow(0 2px 1px #0002)}canvas{display:block;width:100%;height:auto}.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:17%;aspect-ratio:1;border:5px solid white;border-radius:50%;background:var(--navy);box-shadow:0 2px 8px #0003;pointer-events:none}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}button{border:0;border-radius:13px;padding:14px 22px;font-size:16px;font-weight:800;cursor:pointer}.spin{background:var(--blue);color:white;min-width:190px}.spin:disabled{opacity:.55;cursor:wait}.secondary{background:#eef2f7;color:#334155}.result{display:none;text-align:center;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:18px;padding:18px;margin-top:18px}.result.show{display:block}.result h2{margin:0 0 8px;font-size:22px;color:#166534}.result p{margin:0;line-height:1.6}.notice{font-size:13px;color:#64748b;line-height:1.65;margin:16px 2px 0}.foot{text-align:center;font-size:12px;color:#718096;margin-top:20px}
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="eyebrow">MILESTONE · CAREER CLUB</div>
+    <h1>🎁 럭키 룰렛</h1>
+    <p>설문에 참여해 주셔서 감사합니다!<br>아래 버튼을 눌러 오늘의 행운을 확인해 보세요.</p>
+  </header>
+  <section class="panel">
+    <div class="wheel-wrap"><div class="pointer" aria-hidden="true"></div><canvas id="wheel" width="700" height="700" aria-label="경품 룰렛"></canvas><div class="center"></div></div>
+    <div class="actions"><button id="spin" class="spin">▶ 룰렛 돌리기</button><button id="again" class="secondary" hidden>다시 돌리기</button></div>
+    <div id="result" class="result" role="status" aria-live="polite"><h2 id="resultTitle">당첨 결과</h2><p id="resultText"></p></div>
+    <p class="notice">※ 이 페이지는 데모용 무료 룰렛입니다. 브라우저를 새로고침하거나 다시 열면 다시 돌릴 수 있으며, 실제 경품 지급 여부는 운영자가 별도로 확인해야 합니다. 경품명과 당첨 확률은 운영 전에 반드시 확인해 주세요.</p>
+  </section>
+  <div class="foot">취업동아리 · 함께 준비하는 커리어</div>
+</main>
+<script>
+// 아래 PRIZES 배열을 원하는 경품으로 수정하세요. 항목 수는 2~8개를 권장합니다.
+const PRIZES = ["커피 쿠폰", "간식 세트", "편의점 상품권", "응원상", "커피 쿠폰", "간식 세트", "아쉽지만 다음 기회에", "편의점 상품권"];
+const COLORS = ["#f59e0b", "#14b8a6", "#8b5cf6", "#f43f5e", "#3b82f6", "#22c55e", "#fb923c", "#64748b"];
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d');
+const spinBtn=document.getElementById('spin'),againBtn=document.getElementById('again'),result=document.getElementById('result'),resultText=document.getElementById('resultText');
+const cx=350,cy=350,r=330;let rotation=0,busy=false,spun=false;
+function draw(){ctx.clearRect(0,0,700,700);const n=PRIZES.length;const arc=Math.PI*2/n;for(let i=0;i<n;i++){const start=rotation+i*arc-Math.PI/2;const end=start+arc;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();ctx.fillStyle=COLORS[i%COLORS.length];ctx.fill();ctx.strokeStyle='#ffffff';ctx.lineWidth=5;ctx.stroke();ctx.save();ctx.translate(cx,cy);ctx.rotate(start+arc/2);ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle='#102033';ctx.font='bold 25px system-ui, sans-serif';let label=PRIZES[i];if(label.length>10)label=label.slice(0,9)+'…';ctx.fillText(label,r-24,0,245);ctx.restore();}ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#334155';ctx.lineWidth=5;ctx.stroke();}
+function spin(){if(busy)return;busy=true;spinBtn.disabled=true;againBtn.hidden=true;result.classList.remove('show');const n=PRIZES.length;const arc=2*Math.PI/n;const targetIndex=Math.floor(Math.random()*n);const desired=((-(targetIndex+0.5)*arc)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);const current=((rotation%(2*Math.PI))+2*Math.PI)%(2*Math.PI);const delta=((desired-current)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);const start=rotation;const total=delta+Math.PI*2*(5+Math.random()*2);const duration=4800;const t0=performance.now();function frame(now){const t=Math.min(1,(now-t0)/duration);const eased=1-Math.pow(1-t,4);rotation=start+total*eased;draw();if(t<1){requestAnimationFrame(frame)}else{rotation=((rotation%(2*Math.PI))+2*Math.PI)%(2*Math.PI);draw();busy=false;spun=true;spinBtn.disabled=false;spinBtn.textContent='✓ 결과 확인 완료';resultText.textContent='축하합니다! 오늘의 결과는 「'+PRIZES[targetIndex]+'」입니다. 경품 수령 방법은 운영 안내를 확인해 주세요.';result.classList.add('show');againBtn.hidden=false;}}requestAnimationFrame(frame)}
+spinBtn.addEventListener('click',spin);againBtn.addEventListener('click',()=>{spinBtn.textContent='▶ 룰렛 돌리기';spin()});draw();
+</script>
+</body>
+</html>
